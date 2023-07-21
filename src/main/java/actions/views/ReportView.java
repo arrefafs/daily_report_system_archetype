@@ -55,7 +55,7 @@ public class ReportView {
 
 
     //いいね
-    private Integer goodCount;
+
 
 
 }
