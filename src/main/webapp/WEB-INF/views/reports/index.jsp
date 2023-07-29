@@ -34,6 +34,7 @@
                         <td class="report_title">${report.title}</td>
 
 
+
                         <td class="report_action"><a href="<c:url value='?action=${actRep}&command=${commShow}&id=${report.id}' />">詳細を見る</a></td>
                     </tr>
                 </c:forEach>

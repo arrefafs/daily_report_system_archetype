@@ -12,6 +12,7 @@ import constants.AttributeConst;
 import constants.ForwardConst;
 import constants.JpaConst;
 import constants.MessageConst;
+import services.EmployeeService;
 import services.ReportService;
 
 /**
@@ -21,6 +22,7 @@ import services.ReportService;
 public class ReportAction extends ActionBase {
 
     private ReportService service;
+    private EmployeeService eservice;
 
     /**
      * メソッドを実行する
@@ -29,10 +31,12 @@ public class ReportAction extends ActionBase {
     public void process() throws ServletException, IOException {
 
         service = new ReportService();
+        eservice =new EmployeeService();
 
         //メソッドを実行
         invoke();
         service.close();
+        eservice.close();
     }
 
     /**
@@ -95,53 +99,57 @@ public void create() throws ServletException, IOException {
     //CSRF対策 tokenのチェック
     if (checkToken()) {
 
-        //日報の日付が入力されていなければ、今日の日付を設定
-        LocalDate day = null;
-        if (getRequestParam(AttributeConst.REP_DATE) == null
-                || getRequestParam(AttributeConst.REP_DATE).equals("")) {
-            day = LocalDate.now();
-        } else {
-            day = LocalDate.parse(getRequestParam(AttributeConst.REP_DATE));
-        }
+      //CSRF対策 tokenのチェック
+        if (checkToken()) {
 
-        //セッションからログイン中の従業員情報を取得
-        EmployeeView ev = (EmployeeView) getSessionScope(AttributeConst.LOGIN_EMP);
+            //日報の日付が入力されていなければ、今日の日付を設定
+            LocalDate day = null;
+            if (getRequestParam(AttributeConst.REP_DATE) == null
+                    || getRequestParam(AttributeConst.REP_DATE).equals("")) {
+                day = LocalDate.now();
+            } else {
+                day = LocalDate.parse(getRequestParam(AttributeConst.REP_DATE));
+            }
 
-        //パラメータの値をもとに日報情報のインスタンスを作成する
-        ReportView rv = new ReportView(
-                null,
-                ev, //ログインしている従業員を、日報作成者として登録する
-                day,
-                getRequestParam(AttributeConst.REP_TITLE),
-                getRequestParam(AttributeConst.REP_CONTENT),
-                null,
-                null
-                );
+            //セッションからログイン中の従業員情報を取得
+            EmployeeView ev = (EmployeeView) getSessionScope(AttributeConst.LOGIN_EMP);
 
-        //日報情報登録
-        List<String> errors = service.create(rv);
+            //パラメータの値をもとに日報情報のインスタンスを作成する
+            ReportView rv = new ReportView(
+                    null,
+                    ev, //ログインしている従業員を、日報作成者として登録する
+                    day,
+                    getRequestParam(AttributeConst.REP_TITLE),
+                    getRequestParam(AttributeConst.REP_CONTENT),
+                    null,
+                    null
+                   );
 
-        if (errors.size() > 0) {
-            //登録中にエラーがあった場合
+            //日報情報登録
+            List<String> errors = service.create(rv);
 
-            putRequestScope(AttributeConst.TOKEN, getTokenId()); //CSRF対策用トークン
-            putRequestScope(AttributeConst.REPORT, rv);//入力された日報情報
-            putRequestScope(AttributeConst.ERR, errors);//エラーのリスト
+            if (errors.size() > 0) {
+                //登録中にエラーがあった場合
 
-            //新規登録画面を再表示
-            forward(ForwardConst.FW_REP_NEW);
+                putRequestScope(AttributeConst.TOKEN, getTokenId()); //CSRF対策用トークン
+                putRequestScope(AttributeConst.REPORT, rv);//入力された日報情報
+                putRequestScope(AttributeConst.ERR, errors);//エラーのリスト
 
-        } else {
-            //登録中にエラーがなかった場合
+                //新規登録画面を再表示
+                forward(ForwardConst.FW_REP_NEW);
 
-            //セッションに登録完了のフラッシュメッセージを設定
-            putSessionScope(AttributeConst.FLUSH, MessageConst.I_REGISTERED.getMessage());
+            } else {
+                //登録中にエラーがなかった場合
 
-            //一覧画面にリダイレクト
-            redirect(ForwardConst.ACT_REP, ForwardConst.CMD_INDEX);
-        }
+                //セッションに登録完了のフラッシュメッセージを設定
+                putSessionScope(AttributeConst.FLUSH, MessageConst.I_REGISTERED.getMessage());
+
+                //一覧画面にリダイレクト
+                redirect(ForwardConst.ACT_REP, ForwardConst.CMD_INDEX);
+
+            }
+        }}
     }
-}
 /**
  * 詳細画面を表示する
  * @throws ServletException

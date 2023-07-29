@@ -46,6 +46,21 @@
             </p>
         </c:if>
 
+        <form method="POST" action="<c:url value='/reports/good'/>">
+
+        <p>
+        <input type="hidden" name="_token" value="${_token}" />
+        <input type="hidden" name="report_id" value="${report.id}">
+        <input type="submit" value= "いいね">
+        </p>
+        </form>
+
+
+
+
+
+
+
         <p>
             <a href="<c:url value='?action=${actRep}&command=${commIdx}' />">一覧に戻る</a>
         </p>

@@ -54,6 +54,8 @@ public class ReportView {
     private LocalDateTime updatedAt;
 
 
+
+
     //いいね
 
 
